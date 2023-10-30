@@ -1,0 +1,98 @@
+body {
+  margin: 0px;
+  overflow: hidden;
+}
+#form {
+  margin: 0px;
+  display: flex;
+  border-radius: 3px;
+  flex-direction: column;
+  width:20%;
+  height: 7%;
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  z-index: 6;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+#userText{
+  border-radius: 2px;
+  border-color: white;
+  box-shadow: none;
+  margin: 4px 4px 4px 4px;
+}
+#enter{
+  /* align-content: center; */
+  /* width: 20px;
+  height: 20px; */
+  border-radius: 5px;
+  ;
+  background-color: rgba(59, 80, 163, 0.372);
+  left: 2%;
+  top:50%;  
+  position: absolute;
+  margin: 0px;
+  cursor: pointer;
+}
+.background{
+  background-image: url(../images/bkg1.jpg);
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.eye{
+  position: absolute;
+  border-radius: 50%;
+  width: 5vh;
+  height: 5vh;
+  background-color: white;
+  top:80vh;
+  left:50vw;
+  box-shadow: 0px 0px 2px 4px rgb(241, 241, 241),0px 0px 4px 6px rgba(45, 93, 117, 0.621);
+  transition-duration: 0.2s;
+  /* z-index: 2; */
+}
+.eyeball {
+  position: absolute;
+  z-index: 2;
+  background-color: black;
+  border-radius: 50%;
+  width: 40%;
+  height: 40%;
+  /* transition-delay: 0.5s; */
+  /* transition-duration: 0.1s ; */
+  /* left:10%; */
+  box-shadow: 0px 0px 2px 4px rgba(0, 0, 0, 0.959),0px 0px 4px 6px rgba(45, 93, 117, 0.621);
+}
+.bullet {
+  display:none;
+  position: absolute;
+  width:10%;
+  height: 20%;
+  background-color: red;
+}
+
+.direction {
+  position: absolute;
+  background-color: yellow;
+  height: 70%;
+  width: 2px;
+  left:49%; 
+  /* z-index: -1; */
+  bottom: 50%;
+  transform-origin: 100% 100%;
+  /* transform: rotate(45deg); */
+  /* transition-duration: 0.05s; */
+}
+button{
+  position: absolute;
+  left: 30px;
+  top: 50px;
+}
+.eyeball2{
+  left:70vw;
+}
