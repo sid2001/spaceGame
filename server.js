@@ -4,6 +4,7 @@ const webSocket = require("./webSocketServer");
 const dotenv = require("dotenv").config();
 const app = express();
 const gameRoutes = require("./routes/gameRoutes.js");
+
 app.set("view engine", "ejs");
 app.set("views","views");
 app.use(express.urlencoded({extended:false}));

@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../Animations"
+    },
+    {
+      "path": "../NodejsDb"
+    },
+    {
+      "path": "../LearningReact"
+    },
+    {
+      "path": "../ProxyServer"
+    },
+    {
+      "path": "../Go"
+    }
+  ],
+  "settings": {
+    "liveServer.settings.multiRootWorkspaceName": "Animations"
+  }
+}

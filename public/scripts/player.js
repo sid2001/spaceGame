@@ -1,3 +1,5 @@
+var wh = window.outerHeight/2;
+var wb = window.outerWidth/2;
 class Player {
 
   constructor(dir,eye,eyeball,username){
@@ -22,7 +24,7 @@ class Player {
     this.isFueling = false;
     this.isSteering = false;
     this.rotated = 0;
-    this.inputs = {steerR:false,steerL:false};
+    this.inputs = {steerR:false,steerL:false,forward:false,backward:false};
     this.friction = 1;
     this.frictionX = 0;
     this.frictionY = 0;
@@ -35,6 +37,7 @@ class Player {
     this.mouseY = 0;
   }
   
+
   steer(d) {
     // console.log("steering");
 
@@ -43,7 +46,7 @@ class Player {
       if(this.inputs.steerR===true) d = 1;
       else if(this.inputs.steerL===true) d = -1;
       this.rotated = this.rotated + d*this.omega;
-      if(this.rotated>=360||rotation<=-360) this.rotated = 0;
+      if(this.rotated>=360||this.rotated<=-360) this.rotated = Math.abs(this.rotated)*(Math.abs(this.rotated)-360)/this.rotated;
       this.dir.style.transform = "rotate("+this.rotated+"deg)";
       if(this.isSteering===false) clearInterval(rotation);
     },0);
@@ -52,6 +55,8 @@ class Player {
   move(){
     console.log(this.acc);
     const translate = setInterval(()=>{
+      console.log(this.isFueling);
+      console.log("Translating");
       if(this.isMoving===false) this.speed = 0.8;
       this.frictionX = Math.abs(Math.sin(this.rotated*(Math.PI/180))*this.friction);
       this.frictionY = Math.abs(Math.cos(this.rotated*(Math.PI/180))*this.friction);
@@ -80,7 +85,7 @@ class Player {
       this.eye.style.top = this.positionY+"px";
       this.eye.style.left = this.positionX + "px";
 
-      if(this.speed===0){
+      if(this.speed===0&&this.isFueling===false&&this.isReverse===false){
         this.isMoving = false;
         clearInterval(translate);
       }
@@ -94,7 +99,7 @@ class Player {
       
       if(this.isMoving===false)
         this.move();
-      if(this.isFueling===false){
+      if(this.isFueling===false&&this.isReverse===false){
         clearInterval(fueling);
       }
     },100);
@@ -113,11 +118,13 @@ class Player {
     console.log(e.code);
     if(e.code==="KeyW"){
     console.log("Up W");
+    this.inputs.forward = false;
     this.isFueling = false;
     this.terminalSpeed = false;
   }
     if(e.code==="KeyS"){
       console.log("Up S");
+      this.inputs.backward = false;
       this.isReverse = false;
       this.rIsTerminalSpeed = false;
     this.isFueling = false;
@@ -138,21 +145,25 @@ class Player {
   onkeydown(e){
     console.log(e);
     
-    if(e.code==="KeyW"&&this.isFueling===false){
+    if(e.code==="KeyW"&&this.inputs.forward===false){
       console.log("down W");
       this.acc = Math.abs(this.acc);
       this.isFueling = true;
+      this.inputs.forward = true;
       this.fuel();
     }
-    else if((e.code==="KeyS"&&this.isFueling===false)){
+    else if((e.code==="KeyS"&&this.inputs.backward===false)){
+      if(this.inputs.forward===true) this.inputs.forward = false;
       console.log("down S");
       this.isReverse = true;
       this.acc = -1*Math.abs(this.acc);
       this.isFueling = true;
+      this.inputs.backward = true;
       this.fuel();
     }
     if(e.code==="KeyD"){
-      if(this.inputs.steerL=== false)
+      // if(this.inputs.steerL=== false)
+      this.inputs.steerL= false
         this.inputs.steerR = true;
       // isSteering = true;
       if(this.isSteering===false){
@@ -161,7 +172,8 @@ class Player {
       }
     }
     else if(e.code==="KeyA"){
-      if(this.inputs.steerR === false)
+      // if(this.inputs.steerR === false)
+      this.inputs.steerR = false
       this.inputs.steerL = true;
       // isSteering = true;
       if(this.isSteering===false){
@@ -171,14 +183,8 @@ class Player {
   }
   }
 }
-var remotePlayersCount = 0;
-var localPlayer;
-var remotePlayers = {dum:"df"};
-// var dir = document.getElementsByClassName("direction")[0];
-// var eye = document.getElementsByClassName("eye")[0];
-// var eyeball = document.getElementsByClassName("eyeball")[0];
-// const obj = new Player(dir,eye,eyeball);
-var createNewPlayer = function newPlayer(data){
+var players = {};
+var playerObject = function (data){
   let pl = document.createElement('pl');
   
   let eye = document.createElement("div");
@@ -192,17 +198,26 @@ var createNewPlayer = function newPlayer(data){
   eye.appendChild(direction);
   document.body.appendChild(pl);
   var player = new Player(direction,eye,eyeball,data.username);
+  return player;
+}
+
+// var dir = document.getElementsByClassName("direction")[0];
+// var eye = document.getElementsByClassName("eye")[0];
+// var eyeball = document.getElementsByClassName("eyeball")[0];
+// const obj = new Player(dir,eye,eyeball);
+var createNewPlayer = function(data){
+
+  let player = playerObject(data);
   if(data.type==='localPlayer'){
     localPlayer = player;
-    pl.id = "localPlayer"
-    window.onkeyup = e =>{
-      localPlayer.onkeyup(e);
+    window.onkeyup = e =>{ 
       const payload = {
         type:'action',
         event:'onkeyup',
         code:e.code,
         id:ws.id
       }
+      // console.log("action");
       ws.send(JSON.stringify(payload));
     }
     window.onkeydown = e => {
@@ -215,31 +230,80 @@ var createNewPlayer = function newPlayer(data){
       }
       ws.send(JSON.stringify(payload));
     }
+    syncMovement();
   }
   else if(data.type==='remotePlayer'){
     console.log("remotePlayer");
     console.log(data.id);
-    // let id = data.id;
-    
-    remotePlayers[data.id] = player;
-    pl.id = "remotePlayer" + remotePlayersCount;
-    remotePlayersCount++;
+    // remotePlayersCount++;
   }
-  
+  players[data.id] = player;
+}
+
+var getPlayerSpawns = function(data){
+  console.log("getPlayerSpawns data", data);
+  for(const id in data.players){
+    if(id===data.localPlayer){
+      createNewPlayer({id:id,type:'localPlayer',username:data.players[id]})
+    }
+    else{
+      createNewPlayer({id:id,type:'remotePlayer',username:data.players[id]})
+    }
+  }
 }
 var obj;
 
-var remoteAction = function (data) {
-  console.log(data);
+// var remoteAction = function (data) {
+//   console.log(data);
+//   switch(data.event){
+//     case 'onkeydown':
+//       remotePlayers[data.id].onkeydown(data);
+//       break;
+//     case 'onkeyup':
+//       remotePlayers[data.id].onkeyup(data);
+//       break;
+//   }
+// }
+
+var action = function (data){
   switch(data.event){
     case 'onkeydown':
-      remotePlayers[data.id].onkeydown(data);
+      players[data.id].onkeydown(data);
       break;
     case 'onkeyup':
-      remotePlayers[data.id].onkeyup(data);
+      players[data.id].onkeyup(data);
       break;
   }
 }
+
+
+function sendPosition(){
+
+  const {positionX,positionY,rotated} = localPlayer;
+  const diffY = wh-positionY;
+  const diffX = wb-positionX;
+  const pl = {
+    type:"sync",
+    id:ws.id,
+    diffX:diffX,
+    diffY:diffY,
+    rotated:localPlayer.rotated
+  }
+  ws.send(JSON.stringify(pl));
+}
+var setPosition = function (data){
+
+  let player = players[data.id];
+  player.eye.style.top = wh-data.diffY + "px";
+  player.eye.style.left = wb-data.diffX + "px";
+  player.rotated = data.rotated;
+  player.dir.style.transform = "rotate("+data.rotated+"deg)";
+}
+
+var syncMovement =  ()=>{
+  const pingM = setInterval(sendPosition,100);
+}
+
 function newPlayer(data){
   
   let eye = document.createElement("div");
@@ -262,5 +326,4 @@ function newPlayer(data){
   window.onkeyup = e =>obj.onkeyup(e);
   window.onkeydown = e => obj.onkeydown(e);
 }
-
 var screenSize = {height:window.outerHeight,length:window.outerWidth};
